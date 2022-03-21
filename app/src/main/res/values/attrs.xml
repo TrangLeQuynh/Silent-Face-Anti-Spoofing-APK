@@ -18,5 +18,5 @@
         <attr name="radius"         format="dimension" />
         <attr name="lineLength"     format="dimension" />
     </declare-styleable>
-
+<!--    <enum name="recommended_threshold" value="0.915" />-->
 </resources>

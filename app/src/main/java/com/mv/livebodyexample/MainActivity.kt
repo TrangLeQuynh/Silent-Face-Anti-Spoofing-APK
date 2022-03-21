@@ -3,8 +3,7 @@
 package com.mv.livebodyexample
 
 import android.Manifest
-import android.animation.ObjectAnimator
-import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.annotation.TargetApi
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
@@ -16,8 +15,6 @@ import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Surface
 import android.view.SurfaceHolder
-import android.view.View
-import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
@@ -29,7 +26,7 @@ import kotlinx.coroutines.newSingleThreadContext
 import java.io.IOException
 
 @ObsoleteCoroutinesApi
-class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDialogListener {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -61,8 +58,6 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
 
     private val detectionContext = newSingleThreadContext("detection")
     private var working: Boolean = false
-
-    private lateinit var scaleAnimator: ObjectAnimator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -99,12 +94,12 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
             it.setFormat(ImageFormat.NV21)
             it.addCallback(object : SurfaceHolder.Callback, Camera.PreviewCallback {
                 override fun surfaceChanged(
-                    holder: SurfaceHolder?,
+                    holder: SurfaceHolder,
                     format: Int,
                     width: Int,
                     height: Int
                 ) {
-                    if (holder?.surface == null) return
+                    if (holder.surface == null) return
 
                     if (camera == null) return
 
@@ -128,13 +123,13 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
                     setCameraDisplayOrientation()
                 }
 
-                override fun surfaceDestroyed(holder: SurfaceHolder?) {
+                override fun surfaceDestroyed(holder: SurfaceHolder) {
                     camera?.setPreviewCallback(null)
                     camera?.release()
                     camera = null
                 }
 
-                override fun surfaceCreated(holder: SurfaceHolder?) {
+                override fun surfaceCreated(holder: SurfaceHolder) {
                     try {
                         camera = Camera.open(cameraId)
                     } catch (e: Exception) {
@@ -185,14 +180,6 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
             })
         }
 
-        scaleAnimator = ObjectAnimator.ofFloat(binding.scan, View.SCALE_Y, 1F, -1F, 1F).apply {
-            this.duration = 3000
-            this.repeatCount = ValueAnimator.INFINITE
-            this.repeatMode = ValueAnimator.REVERSE
-            this.interpolator = LinearInterpolator()
-            this.start()
-        }
-
     }
 
     private fun calculateSize() {
@@ -231,13 +218,7 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
         camera!!.setDisplayOrientation(result)
     }
 
-    fun setting(@Suppress("UNUSED_PARAMETER") view: View) =
-        SetThresholdDialogFragment().show(supportFragmentManager, "dialog")
-
-    override fun onDialogPositiveClick(t: Float) {
-        threshold = t
-    }
-
+    @SuppressLint("MissingSuperCall")
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -247,7 +228,7 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 init()
             } else {
-                Toast.makeText(this, "请授权相机权限", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Please authorize camera permission", Toast.LENGTH_LONG).show()
             }
         }
     }
@@ -265,7 +246,6 @@ class MainActivity : AppCompatActivity(), SetThresholdDialogFragment.ThresholdDi
 
     override fun onDestroy() {
         engineWrapper.destroy()
-        scaleAnimator.cancel()
         super.onDestroy()
     }
 
