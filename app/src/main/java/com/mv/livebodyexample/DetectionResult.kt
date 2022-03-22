@@ -63,6 +63,16 @@ class DetectionResult(): BaseObservable() {
         this.hasFace = hasFace
     }
 
+    constructor(rect: Rect, confidence: Float, time: Long, hasFace: Boolean) : this() {
+        this.left = rect.left
+        this.top = rect.top
+        this.right = rect.right
+        this.bottom = rect.bottom
+        this.confidence = confidence
+        this.time = time
+        this.hasFace = hasFace
+    }
+
     fun updateLocation(rect: Rect): DetectionResult {
         this.left = rect.left
         this.top = rect.top
@@ -72,6 +82,8 @@ class DetectionResult(): BaseObservable() {
         return this
     }
 
-
+    override fun toString(): String {
+        return "[${this.left} ${this.top} ${this.right} ${this.bottom}] || confidence: ${this.confidence} || time: ${this.time}"
+    }
 }
 

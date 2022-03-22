@@ -5,7 +5,6 @@ import com.mv.engine.FaceBox
 import com.mv.engine.FaceDetector
 //import com.mv.engine.Live
 
-
 class EngineWrapper(private var assetManager: AssetManager) {
 
     private var faceDetector: FaceDetector = FaceDetector()

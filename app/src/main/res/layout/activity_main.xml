@@ -15,10 +15,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <SurfaceView
-            android:id="@+id/surface"
+        <androidx.camera.view.PreviewView
+            android:id="@+id/view_finder"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            />
 
         <LinearLayout
             android:layout_width="165dp"
@@ -42,6 +43,7 @@
         </LinearLayout>
 
         <com.mv.livebodyexample.RectView
+            android:visibility="@{result.hasFace ? View.VISIBLE : View.GONE}"
             android:id="@+id/rectView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -54,27 +56,27 @@
             app:y1="@{result.top}"
             app:y2="@{result.bottom}"
             app:confidence="@{result.confidence}"
-            app:color="@{result.confidence >= result.threshold ? @color/real_face_color : @color/fake_face_color}" />
+            app:color="@{@color/real_face_color}" />
 
-        <LinearLayout
-            android:layout_width="142dp"
-            android:layout_height="43dp"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginBottom="42dp"
-            android:visibility="@{result.hasFace ? View.VISIBLE : View.GONE}"
-            android:background="@{result.confidence >= result.threshold ? @drawable/result_real_face_shape : @drawable/result_fake_face_shape}"
-            android:gravity="center">
+<!--        <LinearLayout-->
+<!--            android:layout_width="142dp"-->
+<!--            android:layout_height="43dp"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            android:layout_marginBottom="42dp"-->
+<!--            android:visibility="@{result.hasFace ? View.VISIBLE : View.GONE}"-->
+<!--            android:background="@{result.confidence >= result.threshold ? @drawable/result_real_face_shape : @drawable/result_fake_face_shape}"-->
+<!--            android:gravity="center">-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="20sp"
-                android:drawableStart="@{result.confidence >= result.threshold ? @drawable/success_icon : @drawable/fail_icon}"
-                android:drawablePadding="20dp"
-                android:text='@{result.confidence >= result.threshold ? @string/real_face : @string/fake_face}'
-                android:textColor="@{result.confidence >= result.threshold ? @color/real_face_color : @color/fake_face_color}"/>
-        </LinearLayout>
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:textSize="20sp"-->
+<!--                android:drawableStart="@{result.confidence >= result.threshold ? @drawable/success_icon : @drawable/fail_icon}"-->
+<!--                android:drawablePadding="20dp"-->
+<!--                android:text='@{result.confidence >= result.threshold ? @string/real_face : @string/fake_face}'-->
+<!--                android:textColor="@{result.confidence >= result.threshold ? @color/real_face_color : @color/fake_face_color}"/>-->
+<!--        </LinearLayout>-->
 
     </RelativeLayout>
 </layout>

@@ -6,5 +6,9 @@
     <string name="set_threshold_dialog_title">Threshold Setting</string>
     <string name="set_threshold_dialog_text_hint">Threshold: 0–1, recommended: 0.915</string>
     <string name="set_threshold_dialog_confirm">Confirm</string>
+    <string name="take_photo">Take Photo</string>
+
     <string name="set_threshold_dialog_hint">Enter threshold</string>
+
+    <string name="permission_deny_camera">Please authorize camera permission</string>
 </resources>
