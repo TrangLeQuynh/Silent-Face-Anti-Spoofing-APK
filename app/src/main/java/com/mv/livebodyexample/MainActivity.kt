@@ -2,13 +2,17 @@ package com.mv.livebodyexample
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.media.Image
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.Rational
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
@@ -25,6 +29,8 @@ import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.model.Model
 import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
+import java.text.SimpleDateFormat
+import java.util.*
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -41,11 +47,11 @@ class MainActivity : AppCompatActivity() {
     /// Camerax variables
     private lateinit var preview: Preview // Preview use case, fast, responsive view of the camera
     private lateinit var imageAnalyzer: ImageAnalysis // Analysis use case, for running ML code
+    private lateinit var imageCapture: ImageCapture
     private lateinit var camera: Camera
     private var cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
     private val cameraSelector: CameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
 
-    //AspectRatio.RATIO_4_3 : 640 / 480
     private val previewWidth: Int = 640
     private val previewHeight: Int = 480
     private var screenWidth: Int = 0
@@ -69,6 +75,49 @@ class MainActivity : AppCompatActivity() {
         } else {
             ActivityCompat.requestPermissions(this, PERMISSIONS, PERMISSION_REQUEST_CODE)
         }
+
+        binding.imageCaptureButton.setOnClickListener{ takePhoto() }
+    }
+
+    private fun takePhoto() {
+        // Get a stable reference of the modifiable image capture use case
+        val imageCapture = imageCapture ?: return
+
+        // Create time stamped name and MediaStore entry.
+        val name = SimpleDateFormat(FILENAME_FORMAT, Locale.US)
+            .format(System.currentTimeMillis())
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, name)
+            put(MediaStore.MediaColumns.MIME_TYPE, "image/jpeg")
+            if(Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/CameraX-Image")
+            }
+        }
+
+        // Create output options object which contains file + metadata
+        val outputOptions = ImageCapture.OutputFileOptions
+            .Builder(contentResolver,
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                contentValues)
+            .build()
+
+        // Set up image capture listener, which is triggered after photo has
+        // been taken
+        imageCapture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e(TAG, "Photo capture failed: ${exc.message}", exc)
+                }
+
+                override fun onImageSaved(output: ImageCapture.OutputFileResults){
+                    val msg = "Photo capture succeeded: ${output.savedUri}"
+                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+                    Log.d(TAG, msg)
+                }
+            }
+        )
     }
 
     private fun allPermissionsGranted(): Boolean = PERMISSIONS.all {
@@ -107,6 +156,9 @@ class MainActivity : AppCompatActivity() {
                     it.setSurfaceProvider(binding.viewFinder.surfaceProvider)
                 }
 
+            imageCapture = ImageCapture.Builder()
+                .build()
+
             //analyzer
             imageAnalyzer = ImageAnalysis.Builder()
                 .setTargetAspectRatio(AspectRatio.RATIO_4_3)
@@ -125,11 +177,27 @@ class MainActivity : AppCompatActivity() {
 
 
             try {
+
+                val viewPort = ViewPort.Builder(
+                    Rational(binding.viewFinder.width, binding.viewFinder.height),
+                    binding.viewFinder.display.rotation
+                ).build()
+
                 // Unbind use cases before rebinding
                 cameraProvider.unbindAll()
+                val useCaseGroup = UseCaseGroup.Builder()
+                    .addUseCase(preview)
+                    .addUseCase(imageAnalyzer)
+                    .addUseCase(imageCapture)
+                    .setViewPort(viewPort)
+                    .build()
 
                 // Bind use cases to camera
-                camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalyzer)
+                camera = cameraProvider.bindToLifecycle(
+                    this,
+                    cameraSelector,
+                    useCaseGroup
+                )
 
                 // Attach the preview to preview view, aka View Finder
                 preview.setSurfaceProvider(viewFinder.surfaceProvider)
@@ -284,6 +352,7 @@ class MainActivity : AppCompatActivity() {
         const val TAG_CAMERAX = "Camera-X"
         const val TAG_TF_LITE = "TF-Lite"
         const val TAG_ENGINE_WRAPPER = "Engine Wrapper"
+        private const val FILENAME_FORMAT = "yyyy-MM-dd-HH-mm-ss-SSS"
 
         const val DEFAULT_THRESHOLD = 0.915F
 
