@@ -82,6 +82,10 @@ class DetectionResult(): BaseObservable() {
         return this
     }
 
+    fun getBoundingBox(): Rect {
+        return Rect(this.left, this.top, this.right, this.bottom)
+    }
+
     override fun toString(): String {
         return "[${this.left} ${this.top} ${this.right} ${this.bottom}] || confidence: ${this.confidence} || time: ${this.time}"
     }

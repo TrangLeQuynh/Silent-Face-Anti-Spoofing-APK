@@ -109,5 +109,10 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite-gpu:+")
     implementation("org.tensorflow:tensorflow-lite-support:+")
 
+    // for mlkit face detection
+//    implementation 'com.google.firebase:firebase-ml-vision-face-model:19.0.0'
+    // Face features
+    implementation 'com.google.mlkit:face-detection:16.1.5'
+
     kapt "com.android.databinding:compiler:3.1.4"
 }
